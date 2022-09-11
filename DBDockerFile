@@ -1,0 +1,15 @@
+FROM postgres:14-1-alpine
+COPY db-init.sql /docker-entrypoint-initdb.d/
+
+RUN ["sed", "-i", "s/exec \"$@\"/echo \"skipping...\"/", "/usr/local/bin/docker-entrypoint.sh"]
+
+ENV PG_USER=dockerUser
+ENV PG_PASSWORD=dockerPassword
+ENV PGDATA=/data
+
+RUN ["/usr/local/bin/docker-entrypoint.sh", "postgres"]
+
+# final build stage
+FROM postgres:14-1-alpine
+
+COPY --from=dumper /data $PGDATA
